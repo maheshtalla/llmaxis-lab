@@ -1,6 +1,1 @@
-Hello, adding some content to the file.
-This is a new line added to the file.
-
-
-Hello, adding some content to the file.
-This is a new line added to the file.
+explain what is genai to a 10 year old
