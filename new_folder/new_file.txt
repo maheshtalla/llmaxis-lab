@@ -1,3 +1,0 @@
-This is a new file created in the new_folder.
-This is the second line of the new file.
-This is the third line of the new file.
