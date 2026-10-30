@@ -1,14 +1,12 @@
 from openai import OpenAI
 from prompt_toolkit import prompt
 
-
-client = OpenAI(api_key="")
+client = OpenAI(api_key="yourkey")
 
 import json
 from openai import OpenAI
 
 client = OpenAI()
-
 # --- LLM CALL ---
 def call_llm(prompt):
     response = client.chat.completions.create(
@@ -20,7 +18,6 @@ def call_llm(prompt):
         ]
     )
     return response.choices[0].message.content
-
 
 # --- BUILD PROMPT ---
 def process_text(text):
@@ -37,7 +34,6 @@ Text to analyze: {text}
 """
     return call_llm(prompt)
 
-
 # --- SAFE JSON PARSER WITH AUTO-REPAIR ---
 def safe_parse(json_text):
     try:
@@ -50,7 +46,6 @@ def safe_parse(json_text):
             return json.loads(cleaned)
         except:
             return None
-
 
 # --- MAIN EXECUTION ---
 user_input = input("What you want to know about: ")
