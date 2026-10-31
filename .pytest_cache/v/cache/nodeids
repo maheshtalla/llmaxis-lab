@@ -1,0 +1,17 @@
+[
+  "tests/test_documents.py::test_chunking_preserves_metadata_and_overlap",
+  "tests/test_documents.py::test_loads_docx_paragraphs_and_tables",
+  "tests/test_documents.py::test_loads_pdf_with_page_metadata",
+  "tests/test_documents.py::test_loads_text_formats[notes.md-# Heading\\nMarkdown body-Markdown body]",
+  "tests/test_documents.py::test_loads_text_formats[notes.txt-Plain text content-Plain text content]",
+  "tests/test_documents.py::test_rejects_unsupported_and_invalid_text",
+  "tests/test_services.py::test_chat_declines_low_relevance_without_calling_answer_model",
+  "tests/test_services.py::test_chat_uses_history_for_followup_and_returns_citations",
+  "tests/test_services.py::test_history_is_bounded_to_configured_turns",
+  "tests/test_services.py::test_ingestion_deduplicates_and_updates_by_filename",
+  "tests/test_services.py::test_ingestion_reports_bad_file_and_progress",
+  "tests/test_services.py::test_settings_reject_invalid_chunk_configuration",
+  "tests/test_vector_store.py::test_chroma_persists_searchable_chunks",
+  "tests/test_vector_store.py::test_clear_removes_all_chunks",
+  "tests/test_vector_store.py::test_duplicate_update_and_delete"
+]

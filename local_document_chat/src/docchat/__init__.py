@@ -1,0 +1,2 @@
+"""Local document chat application."""
+
