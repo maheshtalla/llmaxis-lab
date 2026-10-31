@@ -22,6 +22,7 @@ class Settings:
     retrieval_top_k: int = 4
     min_relevance_score: float = 0.4
     history_turns: int = 6
+    whisper_model_size: str = "tiny"
     log_level: str = "INFO"
 
     @classmethod
@@ -40,6 +41,7 @@ class Settings:
                 os.getenv("MIN_RELEVANCE_SCORE", str(cls.min_relevance_score))
             ),
             history_turns=int(os.getenv("HISTORY_TURNS", str(cls.history_turns))),
+            whisper_model_size=os.getenv("WHISPER_MODEL_SIZE", cls.whisper_model_size),
             log_level=os.getenv("LOG_LEVEL", cls.log_level).upper(),
         )
         if settings.chunk_size <= 0:

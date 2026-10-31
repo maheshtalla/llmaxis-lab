@@ -2,8 +2,9 @@
 
 A Streamlit document-chat app using Ollama for local inference and embeddings,
 LangChain for loading, chunking, and chat orchestration, and persistent ChromaDB
-for semantic retrieval. Uploaded content is processed locally and is not sent to
-a paid API or cloud inference service.
+for semantic retrieval. It also supports local Whisper speech recognition and
+offline text-to-speech. Document and audio content is processed locally and is
+not sent to a paid API or cloud inference service.
 
 ## Requirements
 
@@ -27,6 +28,8 @@ Copy-Item .env.example .env
 
 The app uses the installed `llama3.2:1b` chat model and `nomic-embed-text`
 embeddings. If either is missing, download it with `ollama pull <model>`.
+The first voice transcription downloads the Whisper `tiny` model; that initial
+model download requires internet access. Subsequent transcription runs locally.
 Ollama must be running; start it in another terminal only if it is not already
 running:
 
@@ -42,6 +45,19 @@ streamlit run app.py
 
 Open [http://localhost:8501](http://localhost:8501). In the sidebar, choose
 **Check Ollama health** to confirm the local models are available.
+
+### Voice chat
+
+- Choose **Record a question**, allow microphone access, and record your
+  question.
+- Click **Transcribe recording**. Whisper `tiny` transcribes on the local CPU;
+  the transcript is then submitted to the document chat. On Windows, if Whisper
+  cannot load, the app falls back to Windows' built-in offline speech recognizer.
+- Click **Speak answer** below a response to play speech from a local operating
+  system voice. No browser speech service is used.
+- Set `WHISPER_MODEL_SIZE` to another faster-whisper model size such as `base`
+  or `small` if you prefer a larger model. Larger models need more storage and
+  processing time.
 
 ## Try the UI
 
@@ -87,6 +103,7 @@ Settings are read from environment variables and a local `.env` file. Copy
 | `RETRIEVAL_TOP_K` | `4` | Number of chunks retrieved per question |
 | `MIN_RELEVANCE_SCORE` | `0.4` | Minimum Chroma relevance score; lower scores are treated as insufficient evidence |
 | `HISTORY_TURNS` | `6` | Maximum user/assistant turn pairs retained |
+| `WHISPER_MODEL_SIZE` | `tiny` | Local faster-whisper model size |
 | `LOG_LEVEL` | `INFO` | Python logging level |
 
 ## Tests
@@ -99,9 +116,10 @@ python -m pytest -q
 ```
 
 The tests cover all four loaders, chunking, configuration validation, ingestion
-deduplication and update behavior, bounded chat history, citations, and Chroma
-persistence/retrieval. A real model answer requires Ollama and both models to be
-available locally; use the sidebar health check before testing interactive chat.
+deduplication and update behavior, bounded chat history, citations, Chroma
+persistence/retrieval, and voice-processing helpers. A real model answer requires
+Ollama and both Ollama models to be available locally; the Whisper model is
+downloaded on first use.
 
 ## Limitations
 

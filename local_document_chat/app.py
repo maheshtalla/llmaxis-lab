@@ -17,6 +17,7 @@ from docchat.config import Settings, configure_logging
 from docchat.health import check_ollama
 from docchat.ingestion import IngestionService
 from docchat.vector_store import PersistentVectorStore
+from docchat.voice import synthesize_speech, transcribe_locally
 
 logger = logging.getLogger(__name__)
 settings = Settings.from_env()
@@ -56,12 +57,27 @@ def get_services() -> tuple[PersistentVectorStore, IngestionService, ChatService
 
 st.set_page_config(page_title="Local Document Chat", page_icon="📚", layout="wide")
 st.title("Local Document Chat")
-st.caption("Ask questions about your files. Documents, embeddings, and inference stay on this machine.")
+st.caption(
+    "Ask questions about your files. Documents, audio transcription, and inference stay on this machine."
+)
+
+
+def render_speech_button(text: str, key: str) -> None:
+    if st.button("Speak answer", key=key):
+        try:
+            with st.spinner("Generating speech with your local voice..."):
+                audio = synthesize_speech(text)
+            st.audio(audio, format="audio/wav")
+        except Exception as exc:
+            logger.exception("Could not synthesize speech")
+            st.error(f"Could not generate spoken audio: {exc}")
+
 
 with st.sidebar:
     st.header("Local models")
     st.write(f"Chat: `{settings.chat_model}`")
     st.write(f"Embeddings: `{settings.embedding_model}`")
+    st.write(f"Speech recognition: `Whisper {settings.whisper_model_size}` (local)")
     if st.button("Check Ollama health", use_container_width=True):
         healthy, message = check_ollama(
             settings.ollama_base_url,
@@ -130,9 +146,11 @@ with st.sidebar:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-for turn in st.session_state.chat_history:
+for turn_index, turn in enumerate(st.session_state.chat_history):
     with st.chat_message(turn["role"]):
         st.markdown(turn["content"])
+        if turn["role"] == "assistant":
+            render_speech_button(turn["content"], f"speak-turn-{turn_index}")
         if turn.get("sources"):
             with st.expander("Sources and supporting excerpts"):
                 for source in turn["sources"]:
@@ -141,7 +159,24 @@ for turn in st.session_state.chat_history:
                     ))
                     st.caption(source["excerpt"])
 
-question = st.chat_input("Ask a question about your indexed documents")
+audio_recording = st.audio_input("Record a question", sample_rate=16000)
+if audio_recording and st.button("Transcribe recording", key="transcribe-recording"):
+    try:
+        with st.spinner(
+            f"Transcribing locally with Whisper {settings.whisper_model_size}..."
+        ):
+            transcript, transcription_engine = transcribe_locally(
+                audio_recording.getvalue(),
+                settings.whisper_model_size,
+            )
+        st.session_state["pending_voice_question"] = transcript
+        st.info(f"Transcribed with {transcription_engine}: {transcript}")
+    except Exception as exc:
+        logger.exception("Could not transcribe recording")
+        st.error(f"Could not transcribe the recording: {exc}")
+
+question = st.chat_input("Type a question, or record one above")
+question = question or st.session_state.pop("pending_voice_question", None)
 if question:
     with st.chat_message("user"):
         st.markdown(question)
@@ -150,6 +185,10 @@ if question:
             with st.spinner("Searching your documents and generating an answer..."):
                 result = chat.answer(question, st.session_state.chat_history)
             st.markdown(result.answer)
+            render_speech_button(
+                result.answer,
+                f"speak-turn-{len(st.session_state.chat_history) + 1}",
+            )
             if result.sources:
                 with st.expander("Sources and supporting excerpts", expanded=True):
                     for source in result.sources:
